@@ -5,15 +5,14 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
 
-public class SimpleHttpServerInitializer extends ChannelInitializer<SocketChannel>
-{
-	@Override
-	public void initChannel(SocketChannel ch)
-	{
-		ChannelPipeline p = ch.pipeline();
+public class SimpleHttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
-		p.addLast(new HttpServerCodec());
-		//p.addLast(new HttpObjectAggregator(65536));
-		p.addLast(new SimpleHttpRequestHandler());
-	}
+    @Override
+    public void initChannel(SocketChannel ch) {
+        ChannelPipeline p = ch.pipeline();
+
+        p.addLast(new HttpServerCodec());
+        // p.addLast(new HttpObjectAggregator(65536));
+        p.addLast(new SimpleHttpRequestHandler());
+    }
 }
