@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
-  	"net/http"
-  	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type BenchInfo struct {
-  InitValue     float64    `form:"init"`
-  LoopCount  	int    		`form:"loop_count"`
-  AddValue    	float64    `form:"add"`
-  MulValue    	float64    `form:"mul"`
-  SubValue    	float64    `form:"sub"`
-  DivValue    	float64    `form:"div"`
-  LineCount   	int    		`form:"line"`
+	InitValue float64 `form:"init"`
+	LoopCount int     `form:"loop_count"`
+	AddValue  float64 `form:"add"`
+	MulValue  float64 `form:"mul"`
+	SubValue  float64 `form:"sub"`
+	DivValue  float64 `form:"div"`
+	LineCount int     `form:"line"`
 }
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	r.GET("/", func(c *gin.Context) {
 
 		var benchInfo BenchInfo
-		
+
 		// Bind query parameters to BenchInfo struct
 		err := c.ShouldBindQuery(&benchInfo)
 		if err != nil {
@@ -35,7 +35,7 @@ func main() {
 		}
 
 		var result float64 = benchInfo.InitValue
-		
+
 		// Perform computations based on the provided parameters
 		for i := 0; i < benchInfo.LoopCount; i++ {
 			result += benchInfo.AddValue
