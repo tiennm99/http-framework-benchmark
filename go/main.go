@@ -13,13 +13,13 @@ import (
 )
 
 type BenchInfo struct {
-	InitValue float64 `form:"init"`
-	LoopCount int     `form:"loop_count"`
-	AddValue  float64 `form:"add"`
-	MulValue  float64 `form:"mul"`
-	SubValue  float64 `form:"sub"`
-	DivValue  float64 `form:"div"`
-	LineCount int     `form:"line"`
+	InitValue float64
+	LoopCount int
+	AddValue  float64
+	MulValue  float64
+	SubValue  float64
+	DivValue  float64
+	LineCount int
 }
 
 var (
