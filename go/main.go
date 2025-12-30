@@ -1,9 +1,14 @@
 package main
 
 import (
+	"expvar"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
+	_ "net/http/pprof"
+	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type BenchInfo struct {
@@ -16,7 +21,22 @@ type BenchInfo struct {
 	LineCount int     `form:"line"`
 }
 
+var (
+	requestDuration    = expvar.NewInt("request_duration_ns")
+	requestCount       = expvar.NewInt("request_count")
+	requestAvgDuration = expvar.NewFloat("request_avg_duration_ns")
+)
+
 func main() {
+	// Goroutine mới để chạy pprof, expvar
+	go func() {
+		log.Println("pprof:  http://localhost:6060/debug/pprof/")
+		log.Println("expvar: http://localhost:6060/debug/vars")
+		if err := http.ListenAndServe("localhost:6060", nil); err != nil {
+			log.Printf("pprof error: %v", err)
+		}
+	}()
+
 	// Create a Gin router with default middleware (logger and recovery)
 	gin.SetMode(gin.ReleaseMode)
 
@@ -24,38 +44,45 @@ func main() {
 
 	// Define a simple GET endpoint
 	r.GET("/", func(c *gin.Context) {
-
+		start := time.Now()
 		var benchInfo BenchInfo
 
 		// Bind query parameters to BenchInfo struct
-		err := c.ShouldBindQuery(&benchInfo)
-		if err != nil {
+		if err := c.ShouldBindQuery(&benchInfo); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		var result float64 = benchInfo.InitValue
+		result := benchInfo.InitValue
 
 		// Perform computations based on the provided parameters
-		for i := 0; i < benchInfo.LoopCount; i++ {
+		for range benchInfo.LoopCount {
 			result += benchInfo.AddValue
 			result *= benchInfo.MulValue
 			result -= benchInfo.SubValue
 			result /= benchInfo.DivValue
 		}
 
-		var resultStr string = fmt.Sprintf("result=%10f\n", result)
+		resultStr := fmt.Sprintf("result=%10f\n", result)
 
-		var payload string = ""
-		for i := 0; i < benchInfo.LineCount; i++ {
+		payload := ""
+		for range benchInfo.LineCount {
 			payload += resultStr
 		}
 
 		// Send the computed payload as the response
 		c.String(http.StatusOK, payload)
+
+		requestCount.Add(1)
+		requestDuration.Add(time.Since(start).Nanoseconds())
+		requestAvgDuration.Set(float64(requestDuration.Value()) / float64(requestCount.Value()))
 	})
 
-	// Start server on port 8080 (default)
-	// Server will listen on 0.0.0.0:8080 (localhost:8080 on Windows)
-	r.Run()
+	log.Println("server: http://localhost:8080")
+
+	// Start server on port 8080
+	if err := r.Run(); err != nil {
+		log.Printf("r.Run() error: %v", err)
+		return
+	}
 }
