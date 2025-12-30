@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"expvar"
 	"fmt"
 	"log"
@@ -65,13 +66,10 @@ func main() {
 
 		resultStr := fmt.Sprintf("result=%10f\n", result)
 
-		payload := ""
-		for range benchInfo.LineCount {
-			payload += resultStr
-		}
+		payload := bytes.Repeat([]byte(resultStr), benchInfo.LineCount)
 
 		// Send the computed payload as the response
-		c.String(http.StatusOK, payload)
+		c.Data(http.StatusOK, "text/plain", payload)
 
 		requestCount.Add(1)
 		requestDuration.Add(time.Since(start).Nanoseconds())
